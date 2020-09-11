@@ -37,6 +37,15 @@ def update_labels():
     with open('usa_counties.svg') as f:
         soup = bs4.BeautifulSoup(f.read(), "lxml")
         svg = soup.svg
+    tags = svg.find_all("path", attrs={"style": "fill:#89b679;fill-opacity:1"})
+    tags += svg.find_all("polyline", attrs={"fill": "#AF1F23"})
+    tags += svg.find_all("path", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
+    tags += svg.find_all("polyline", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
+    tags += svg.find_all("path", attrs={"fill": "#F07568"})
+    #tags = svg.find_all("path", attrs={"fill": "clip-rule:evenodd;fill:#b3c8a9;fill-opacity:1;fill-rule:evenodd"})
+    #raise Exception(len(tags))
+    for tag in tags:
+        tag.extract()
     for ii, line in enumerate(open('prelim_counties.txt')):
         if line.startswith("#"):
             if len(line.strip()) == 1:
@@ -44,6 +53,8 @@ def update_labels():
             continue
         cty, path, score = line.rsplit(maxsplit=2)
         tag = svg.find(id=path)
+        if tag is None:
+            raise Exception(cty, path)
         #assert len(tags) == 1
         #tag = tags[0]
         tag['id'] = cty
@@ -55,6 +66,7 @@ def update_labels():
                                      "fill:#{}".format(newcolor))
         if ii % 10 == 0:
             print(ii)
+
     with open('/tmp/outfile.svg', 'w') as f:
         f.write(soup.prettify())
 
@@ -65,6 +77,8 @@ def get_color(state):
                     'IN': 'e3dbde',
                     'NH': 'e3dbdf',
                     'AL': 'eeaaee',
+                    'CA': 'e5d5fd',
+                    'MD': 'e5d5fe',
                     'GA': 'e5d5ff',
                     'NM': 'ffaaee',
                     'ME': 'aaeeff',

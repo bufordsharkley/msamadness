@@ -315,27 +315,6 @@ def preliminary_match_stuff():
         print(line_to_write)
         matches = filter_matches(matches, cty, path)
         match_file.write(line_to_write + '\n')
-    return
-    #if fname is not None:
-    #   fname.write(line_to_write + '\n')
-    while True:
-    #for threshold in range(60, 2, -1):
-        print(threshold)
-        print(len(svg_counties))
-        print(len(lat_counties))
-        matched_src, matched_paths, maximum = print_all_best_matches(
-                lat_counties, svg_counties, threshold=threshold,
-                fname=match_file, verbose=False)
-        print(matched_paths)
-        print(matched_src)
-        svg_counties = {k: v for k, v in svg_counties.items()
-                        if k not in matched_paths}
-        lat_counties = {k: v for k, v in lat_counties.items()
-                        if k not in matched_src}
-        if maximum > threshold:
-            threshold = maximum
-        else:
-            threshold -= 1
 
 
 def filter_matches(matches, filter_cty, filter_path):
@@ -349,12 +328,19 @@ def filter_matches(matches, filter_cty, filter_path):
 
 
 def get_widest_margin(matches):
-    margins = [((scores[1][0] - scores[0][0])/scores[0][0], cty, scores[0][1], scores[0][0])
-               for cty, scores in matches.items()]
-    margins.sort(reverse=True)
 
+    def calc_margin(scores):
+        if len(scores) == 1:
+            return 999999
+        return (scores[1][0] - scores[0][0])/scores[0][0]
+
+
+    margins = [(calc_margin(scores), cty, scores[0][1], scores[0][0])
+            for cty, scores in matches.items()]
+    margins.sort(reverse=True)
     margin, cty, path, score = margins[0]
     return cty, path, score, margin
+    #raise StopIteration("You're done now")
 
 
 def print_all_best_matches(lat_counties, svg_counties):
