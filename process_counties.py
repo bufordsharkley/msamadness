@@ -7,6 +7,13 @@ from sklearn.linear_model import LinearRegression
 
 # micropolitan color: cde5c1ff
 
+#id="path3640-6roanokecity"
+#id="path3266-5richmondcity"
+#id="path3562stl" 
+#id="path3686-7franklincity"
+#id="polyline2558-7fairfaxcit"
+#id="path2246baltimore"
+
 
 def get_bounding(path):
     position, path = get_initial(path)
@@ -143,6 +150,8 @@ def fetch_svg_data():
             continue
         elif tag.name == 'image':
             continue
+        elif tag.name == 'g':
+            continue
         try:
             assert tag.name == 'path'
         except AssertionError:
@@ -270,6 +279,22 @@ def get_corners(ll_data):
 
 def main():
     preliminary_match_stuff()
+    """
+    with open('usa_counties.svg') as f:
+        soup = bs4.BeautifulSoup(f.read(), "lxml").svg
+    tags = []
+    for tag in soup:
+        #if type(tag) == bs4.element.NavigableString:
+        #    if not tag.strip():
+        #        continue
+        if tag.name == 'polyline':
+            tags.append(tag)
+    for tag in tags:
+        style = tag['style']
+        if '#999999' in style:  # Counties, based upon stroke edge
+            print(tag['id'])
+    """
+    msa_data()
     return
     all_paths = set(x.strip() for x in open('all_county_paths.txt'))
     print(len(all_paths))
@@ -281,6 +306,24 @@ def main():
     print(len(set(matched_paths)))
     for cty in all_paths - set(matched_paths):
         print(cty)
+
+
+def msa_data():
+    with open('us-county-boundaries.csv') as f:
+        for ii, line in enumerate(f):
+            print(line)
+            break
+            if ii == 0:
+                continue
+            data = line.split(';')
+            assert len(data) == 21
+            _, geo, _, _, _, _, name, _, state, *_ = data
+            if state in ('PR', 'HI', 'VI', 'AK', 'GU', 'AS', 'MP'):
+                continue
+            name = name.upper()
+            xmin, ymin, xmax, ymax = parse_geo(geo)
+            resp["{}_{}".format(state, name)] = (xmin, ymin, xmax - xmin, ymax - ymin)
+
 
 
 def preliminary_match_stuff():

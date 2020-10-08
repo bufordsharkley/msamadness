@@ -4,7 +4,9 @@ import bs4
 
 
 def main():
-    update_labels()
+    recolor = True
+    recolor = False
+    update_labels(recolor=recolor)
     update_titles_with_label()
     return
     if len(sys.argv) > 1:
@@ -17,7 +19,7 @@ def update_titles_with_label():
     with open('/tmp/outfile.svg') as f:
         soup = bs4.BeautifulSoup(f.read(), "lxml")
         svg = soup.svg
-    for tag in svg:
+    for tag in svg.find_all("path"):
         if tag.name != 'path':
             continue
         style = tag.attrs['style']
@@ -33,19 +35,20 @@ def update_titles_with_label():
         f.write(soup.prettify())
 
 
-def update_labels():
+def update_labels(recolor=False):
     with open('usa_counties.svg') as f:
         soup = bs4.BeautifulSoup(f.read(), "lxml")
         svg = soup.svg
-    tags = svg.find_all("path", attrs={"style": "fill:#89b679;fill-opacity:1"})
-    tags += svg.find_all("polyline", attrs={"fill": "#AF1F23"})
-    tags += svg.find_all("path", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
-    tags += svg.find_all("polyline", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
-    tags += svg.find_all("path", attrs={"fill": "#F07568"})
-    #tags = svg.find_all("path", attrs={"fill": "clip-rule:evenodd;fill:#b3c8a9;fill-opacity:1;fill-rule:evenodd"})
-    #raise Exception(len(tags))
-    for tag in tags:
-        tag.extract()
+    if recolor:
+        tags = svg.find_all("path", attrs={"style": "fill:#89b679;fill-opacity:1"})
+        tags += svg.find_all("polyline", attrs={"fill": "#AF1F23"})
+        tags += svg.find_all("path", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
+        tags += svg.find_all("polyline", attrs={"style": "clip-rule:evenodd;fill:#89b679;fill-opacity:1;fill-rule:evenodd"})
+        tags += svg.find_all("path", attrs={"fill": "#F07568"})
+        #tags = svg.find_all("path", attrs={"fill": "clip-rule:evenodd;fill:#b3c8a9;fill-opacity:1;fill-rule:evenodd"})
+        #raise Exception(len(tags))
+        for tag in tags:
+            tag.extract()
     for ii, line in enumerate(open('prelim_counties.txt')):
         if line.startswith("#"):
             if len(line.strip()) == 1:
@@ -60,10 +63,11 @@ def update_labels():
         tag['id'] = cty
         style = tag['style']
         assert "fill:#ffffff" in style
-        state = cty.split('_')[0]
-        newcolor = get_color(state)
-        tag['style'] = style.replace("fill:#ffffff",
-                                     "fill:#{}".format(newcolor))
+        if recolor:
+            state = cty.split('_')[0]
+            newcolor = get_color(state)
+            tag['style'] = style.replace("fill:#ffffff",
+                                         "fill:#{}".format(newcolor))
         if ii % 10 == 0:
             print(ii)
 
